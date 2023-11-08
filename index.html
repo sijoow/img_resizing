@@ -1,52 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>이미지 리사이징</title>
 </head>
 <body>
     <h1>이미지 리사이징</h1>
-    
-    <!-- 이미지 업로드 폼 -->
-    <form action="/resize" method="post" enctype="multipart/form-data">
-        <input type="file" name="images" accept="image/*" multiple required>
-        <button type="submit">이미지 리사이징 및 저장</button>
+
+    <form action="/resize" method="POST" enctype="multipart/form-data">
+        <input type="file" name="images" multiple>
+        <button type="submit">이미지 리사이징</button>
     </form>
-    
+
+    <div id="download-links">
+        <!-- 이미지가 리사이징되면 이 영역에 다운로드 링크가 추가될 것입니다. -->
+    </div>
+
     <script>
-        // 이미지 리사이즈 결과를 표시
-        function displayResizedImages(resizedImages) {
-            const container = document.getElementById('resizedImages');
-            container.innerHTML = '';
+        const form = document.querySelector('form');
+        const downloadLinks = document.getElementById('download-links');
 
-            resizedImages.forEach((image) => {
-                const imgElement = document.createElement('img');
-                imgElement.src = `/${image.filename}`;
-                imgElement.alt = image.originalname;
-                container.appendChild(imgElement);
-            });
-        }
-
-        // 이미지 리사이즈 폼 제출 후 결과 표시
-        document.querySelector('form').addEventListener('submit', async (event) => {
+        form.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const formData = new FormData(event.target);
-            
-            try {
-                const response = await fetch('/resize', {
-                    method: 'POST',
-                    body: formData,
-                });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    alert('다운로드완료')
-                } else {
-                    console.error('이미지 리사이즈에 실패했습니다.');
+            const formData = new FormData(form);
+            const response = await fetch('/resize', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // 다운로드 링크를 생성하여 추가
+                for (const image of result.resizedImages) {
+                    const link = document.createElement('a');
+                    link.href = image.filename;
+                    link.download = image.originalname;
+                    link.textContent = `다운로드: ${image.originalname}`;
+                    downloadLinks.appendChild(link);
                 }
-            } catch (error) {
-                console.error(error);
+            } else {
+                console.error(result.error);
             }
         });
     </script>
