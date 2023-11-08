@@ -30,9 +30,12 @@ app.post('/resize', upload.array('images'), async (req, res) => {
             // 이미지 크기를 1000x1000으로 변경
             image.resize(1000, 1000);
 
-            // 이미지를 투명한 배경 (PNG)으로 저장
+            // 원본 이미지 파일 이름 가져오기
             const originalname = imageBuffer.originalname;
-            const filename = `${originalname.replace(/\.[^.]+$/, '')}.png`; // 파일 확장자를 PNG로 변경
+
+            // 리사이징된 이미지를 파일로 저장 (원본 파일 이름 그대로)
+            const filename = originalname;
+
             await image.writeAsync(filename);
 
             resizedImages.push({ originalname, filename });

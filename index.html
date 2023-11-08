@@ -1,23 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>이미지 리사이징</title>
+    <title>이미지 리사이징 및 다운로드</title>
 </head>
 <body>
-    <h1>이미지 리사이징</h1>
+    <h1>이미지 리사이징 및 다운로드</h1>
 
     <form action="/resize" method="POST" enctype="multipart/form-data">
         <input type="file" name="images" multiple>
         <button type="submit">이미지 리사이징</button>
     </form>
 
-    <div id="download-links">
-        <!-- 이미지가 리사이징되면 이 영역에 다운로드 링크가 추가될 것입니다. -->
-    </div>
-
     <script>
         const form = document.querySelector('form');
-        const downloadLinks = document.getElementById('download-links');
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -28,19 +23,20 @@
                 body: formData
             });
 
-            const result = await response.json();
-
             if (response.ok) {
-                // 다운로드 링크를 생성하여 추가
-                for (const image of result.resizedImages) {
-                    const link = document.createElement('a');
-                    link.href = image.filename;
-                    link.download = image.originalname;
-                    link.textContent = `다운로드: ${image.originalname}`;
-                    downloadLinks.appendChild(link);
-                }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                // 이미지 다운로드를 위한 링크 생성
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'resized_image.png'; // 다운로드되는 파일 이름 지정
+                document.body.appendChild(a);
+                a.click();
+
+                window.URL.revokeObjectURL(url); // URL 해제
             } else {
-                console.error(result.error);
+                console.error('이미지 리사이징 중 오류가 발생했습니다.');
             }
         });
     </script>
