@@ -7,6 +7,12 @@ const fs = require('fs');
 const app = express();
 const port = 8002;
 
+// "img" 폴더를 생성하여 이미지를 저장
+const imgFolder = path.join(__dirname, 'img');
+if (!fs.existsSync(imgFolder)) {
+    fs.mkdirSync(imgFolder);
+}
+
 app.use(express.static('public'));
 
 const storage = multer.memoryStorage();
@@ -33,9 +39,12 @@ app.post('/resize', upload.array('images'), async (req, res) => {
             // 원본 이미지 파일 이름 가져오기
             const originalname = imageBuffer.originalname;
 
-            // 리사이징된 이미지를 파일로 저장 (원본 파일 이름 그대로)
-            const filename = originalname;
+            const filename = path.join(imgFolder, originalname);
 
+            // 화질 개선 - 화질을 90%로 설정 (0-100 범위)
+            image.quality(100);
+
+            // JPG로 저장
             await image.writeAsync(filename);
 
             resizedImages.push({ originalname, filename });
